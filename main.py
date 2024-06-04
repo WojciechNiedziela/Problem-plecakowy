@@ -1,37 +1,31 @@
-# TODO
-# 
-# - clean code
-# 
+import argparse, sys
 
-import argparse
-import sys
-
-def plecak_dynamiczny(C, wt, val, names, n):
-    K = [[0 for w in range(C + 1)] for i in range(n + 1)]
+def plecak_dynamiczny(CapacityOfTheBackpack, weightsArr, valuesArr, namesArr, n): 
+    MaxValue = [[0 for weight in range(CapacityOfTheBackpack + 1)] for i in range(n + 1)]
     for i in range(n + 1):
-        for w in range(C + 1):
-            if i == 0 or w == 0:
-                K[i][w] = 0
-            elif wt[i - 1] <= w:
-                K[i][w] = max(val[i - 1] + K[i - 1][w - wt[i - 1]], K[i - 1][w])
+        for weight in range(CapacityOfTheBackpack + 1): 
+            if i == 0 or weight == 0:
+                MaxValue[i][weight] = 0
+            elif weightsArr[i - 1] <= weight:
+                MaxValue[i][weight] = max(valuesArr[i - 1] + MaxValue[i - 1][weight - weightsArr[i - 1]], MaxValue[i - 1][weight])
             else:
-                K[i][w] = K[i - 1][w]
+                MaxValue[i][weight] = MaxValue[i - 1][weight]
     
-    res = K[n][C]
-    w = C
-    items_in_knapsack = []
+    result = MaxValue[n][CapacityOfTheBackpack]
+    weight = CapacityOfTheBackpack
+    ItemsInBackpack = []
     
     for i in range(n, 0, -1):
-        if res <= 0:
+        if result <= 0:
             break
-        if res == K[i - 1][w]:
+        if result == MaxValue[i - 1][weight]:
             continue
         else:
-            items_in_knapsack.append(names[i - 1])
-            res = res - val[i - 1]
-            w = w - wt[i - 1]
+            ItemsInBackpack.append(namesArr[i - 1])
+            result = result - valuesArr[i - 1]
+            weight = weight - weightsArr[i - 1]
     
-    return K[n][C], items_in_knapsack
+    return MaxValue[n][CapacityOfTheBackpack], ItemsInBackpack
 
 def read_data_from_file(filename):
     with open(filename, 'r') as f:
@@ -40,14 +34,14 @@ def read_data_from_file(filename):
             print("Plik jest pusty.")
             return None
 
-        C = int(lines[0])
+        CapacityOfTheBackpack = int(lines[0])
         n = int(lines[1])
         if len(lines) < 2 * n + 2:
             print("Plik nie zawiera wystarczającej liczby danych dla podanej ilości przedmiotów.")
             return None
 
-        val = []
-        wt = []
+        valuesArr = []
+        weightsArr = []
         names = []
         line_index = 2
         for i in range(n):
@@ -64,27 +58,27 @@ def read_data_from_file(filename):
                 return None
 
             try:
-                v, w = map(int, item_data)
+                value, weight = map(int, item_data)
             except ValueError:
                 print(f"Nie można przekonwertować danych przedmiotu '{name}' na liczby całkowite.")
                 return None
 
-            val.append(v)
-            wt.append(w)
+            valuesArr.append(value)
+            weightsArr.append(weight)
             line_index += 1
 
-    return C, wt, val, names, n
+    return CapacityOfTheBackpack, weightsArr, valuesArr, names, n
 
 def read_data_from_console():
     try:
-        C = int(input("Podaj pojemność plecaka: "))
+        CapacityOfTheBackpack = int(input("Podaj pojemność plecaka: "))
         n = int(input("Podaj liczbę przedmiotów: "))
     except ValueError:
         print("Podano nieprawidłową wartość. Program zostanie zakończony.")
         sys.exit(1)
 
-    val = []
-    wt = []
+    valuesArr = []
+    weightsArr = []
     names = []
     for i in range(n):
         name = input(f"Podaj nazwę przedmiotu {i+1}: ").strip()
@@ -94,14 +88,14 @@ def read_data_from_console():
         names.append(name)
 
         try:
-            v, w = map(int, input(f"Podaj wartość i wagę przedmiotu '{name}' (p w): ").split())
+            value, weight = map(int, input(f"Podaj wartość i wagę przedmiotu '{name}' (p w): ").split())
         except ValueError:
             print(f"Nieprawidłowe dane dla przedmiotu '{name}'. Program zostanie zakończony.")
             sys.exit(1)
 
-        val.append(v)
-        wt.append(w)
-    return C, wt, val, names, n
+        valuesArr.append(value)
+        weightsArr.append(weight)
+    return CapacityOfTheBackpack, weightsArr, valuesArr, names, n
 
 
 def main():
@@ -115,13 +109,13 @@ def main():
         result = read_data_from_file(args.file)
         if result is None:
             sys.exit("Program zakończony z powodu niepoprawnych danych wejściowych lub pustego pliku.")
-        C, wt, val, names, n = result
+        CapacityOfTheBackpack, weight, valuesArr, names, n = result
     elif args.console:
-        C, wt, val, names, n = read_data_from_console()
+        CapacityOfTheBackpack, weight, valuesArr, names, n = read_data_from_console()
     
-    max_value, items_in_knapsack = plecak_dynamiczny(C, wt, val, names, n)
-    print(f"Maksymalna wartość, którą można umieścić w plecaku to: {max_value}")
-    print("Przedmioty, które znajdą się w plecaku to:", items_in_knapsack)
+    maxValue, ItemsInBackpack = plecak_dynamiczny(CapacityOfTheBackpack, weight, valuesArr, names, n)
+    print(f"Maksymalna wartość, którą można umieścić w plecaku to: {maxValue}")
+    print("Przedmioty, które znajdą się w plecaku to:", ItemsInBackpack)
 
 if __name__ == "__main__":
     main()
